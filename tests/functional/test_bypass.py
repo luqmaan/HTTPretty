@@ -110,11 +110,8 @@ def test_httpretty_bypasses_a_unregistered_request(context):
 
     expect(got1).to.equal(b'glub glub')
 
-    fd = urllib2.urlopen('http://localhost:9999/come-again/')
-    got2 = fd.read()
-    fd.close()
+    urllib2.urlopen.when.called_with('http://localhost:9999/come-again/').should.throw(urllib2.URLError)
 
-    expect(got2).to.equal(b'<- HELLO WORLD ->')
     core.POTENTIAL_HTTP_PORTS.remove(9999)
 
 

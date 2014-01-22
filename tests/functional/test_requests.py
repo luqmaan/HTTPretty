@@ -750,3 +750,38 @@ def hello():
     return json.dumps({
         'href': 'http://foobar.com'
     })
+
+
+@httprettified
+def test_httpretty_should_work_with_a_non_standard_port():
+    "HTTPretty should work with a non-standard port number"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        "http://api.yipit.com:1234/v1/deal;brand=asdf",
+        body=lambda method,uri,headers: [200,headers,uri]
+    )
+
+    response = requests.get('http://api.yipit.com:1234/v1/deal;brand=asdf')
+
+    expect(response.text).to.equal('http://api.yipit.com:1234/v1/deal;brand=asdf')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=asdf')
+
+@httprettified
+def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
+    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
+        body=lambda method,uri,headers: [200,headers,uri]
+    )
+
+    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+
